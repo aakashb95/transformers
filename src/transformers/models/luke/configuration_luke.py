@@ -17,8 +17,8 @@
 from collections import OrderedDict
 from typing import Mapping
 
-from ...onnx import OnnxConfig
 from ...configuration_utils import PretrainedConfig
+from ...onnx import OnnxConfig
 from ...utils import logging
 
 
