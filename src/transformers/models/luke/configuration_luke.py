@@ -14,6 +14,10 @@
 # limitations under the License.
 """ LUKE configuration"""
 
+from collections import OrderedDict
+from typing import Mapping
+
+from ...onnx import OnnxConfig
 from ...configuration_utils import PretrainedConfig
 from ...utils import logging
 
@@ -129,3 +133,21 @@ class LukeConfig(PretrainedConfig):
         self.initializer_range = initializer_range
         self.layer_norm_eps = layer_norm_eps
         self.use_entity_aware_attention = use_entity_aware_attention
+
+
+class LukeOnnxConfig(OnnxConfig):
+    @property
+    def inputs(self) -> Mapping[str, Mapping[int, str]]:
+        return OrderedDict(
+            [
+                ("input_ids", {0: "batch", 1: "sequence"}),
+                ("attention_mask", {0: "batch", 1: "sequence"}),
+                ("entity_ids", {0: "batch", 1: "entity_length"}),
+                ("entity_attention_mask", {0: "batch", 1: "entity_length"}),
+                ("entity_position_ids", {0: "batch", 1: "entity_length", 2: "max_mention_length"}),
+            ]
+        )
+
+    @property
+    def default_onnx_opset(self) -> int:
+        return 13
