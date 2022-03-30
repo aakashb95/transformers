@@ -295,6 +295,18 @@ class OnnxConfig(ABC):
             )
             # Generate dummy inputs according to compute batch and sequence
             dummy_input = [" ".join([preprocessor.unk_token]) * seq_length] * batch_size
+
+            # LukeTokenizer needs entity_spans which is different from all other tokenizers, so we need to add it here
+            if "studio-ousia/luke" in preprocessor.name_or_path:
+                entity_spans = [(0, 1), (2, 3)]
+                return dict(
+                    preprocessor(
+                        "".join(dummy_input),
+                        entity_spans=entity_spans,
+                        return_tensors=framework,
+                    )
+                )
+
             return dict(preprocessor(dummy_input, return_tensors=framework))
         elif isinstance(preprocessor, FeatureExtractionMixin) and preprocessor.model_input_names[0] == "pixel_values":
             # If dynamic axis (-1) we forward with a fixed dimension of 2 samples to avoid optimizations made by ONNX
