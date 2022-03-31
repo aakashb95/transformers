@@ -15,12 +15,13 @@
 """ LUKE configuration"""
 
 from collections import OrderedDict
-from typing import Mapping
+from typing import Any, Mapping, Optional
 
 from ...configuration_utils import PretrainedConfig
 from ...onnx import OnnxConfig
 from ...utils import logging
-
+from ... import PreTrainedTokenizerBase, TensorType
+from ...onnx.utils import compute_effective_axis_dimension
 
 logger = logging.get_logger(__name__)
 
@@ -147,6 +148,38 @@ class LukeOnnxConfig(OnnxConfig):
                 ("entity_position_ids", {0: "batch", 1: "entity_length", 2: "max_mention_length"}),
             ]
         )
+
+    def generate_dummy_inputs(
+        self,
+        preprocessor: "PreTrainedTokenizerBase",
+        batch_size: int = -1,
+        seq_length: int = -1,
+        is_pair: bool = False,
+        framework: Optional[TensorType] = None,
+    ) -> Mapping[str, Any]:
+
+        batch_size = compute_effective_axis_dimension(
+            batch_size, fixed_dimension=OnnxConfig.DEFAULT_FIXED_BATCH, num_token_to_add=0
+        )
+        # If dynamic axis (-1) we forward with a fixed dimension of 8 tokens to avoid optimizations made by ONNX
+        token_to_add = preprocessor.num_special_tokens_to_add(is_pair)
+        seq_length = compute_effective_axis_dimension(
+            seq_length, fixed_dimension=OnnxConfig.DEFAULT_FIXED_SEQUENCE, num_token_to_add=token_to_add
+        )
+        # Generate dummy inputs according to compute batch and sequence
+        dummy_input = [" ".join([preprocessor.unk_token]) * seq_length] * batch_size
+
+        # choose random entity_spans which is necessary for LukeTokenizer
+        entity_spans = [(0, 1), (2, 3)]
+        tokenized = dict(
+            preprocessor(
+                "".join(dummy_input),
+                entity_spans=entity_spans,
+                return_tensors=framework,
+            )
+        )
+
+        return tokenized
 
     @property
     def default_onnx_opset(self) -> int:
