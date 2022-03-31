@@ -175,6 +175,7 @@ PYTORCH_EXPORT_MODELS = {
     ("bert", "bert-base-cased"),
     ("ibert", "kssteven/ibert-roberta-base"),
     ("camembert", "camembert-base"),
+    ("luke", "studio-ousia/luke-base"),
     ("distilbert", "distilbert-base-cased"),
     ("electra", "google/electra-base-generator"),
     ("roberta", "roberta-base"),
