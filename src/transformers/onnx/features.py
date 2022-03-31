@@ -263,8 +263,6 @@ class FeaturesManager:
         ),
         "luke": supported_features_mapping(
             "default",
-            "masked-lm",
-            "token-classification",
             onnx_config_cls=LukeOnnxConfig,
         ),
         "electra": supported_features_mapping(
